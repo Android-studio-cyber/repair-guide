@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База знаний по ремонту электроники</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --warning-bg: #fef2f2;
+            --warning-border: #fecaca;
+            --warning-text: #991b1b;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .search-panel {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 20px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        select:disabled {
+            background-color: #f1f5f9;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            height: 48px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            display: none; /* Скрыто по умолчанию */
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .result-header h2 {
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+
+        .diagnosis {
+            font-size: 1.1rem;
+            color: var(--text);
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: #f0f9ff;
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tools-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tool-tag {
+            background-color: #e0e7ff;
+            color: #3730a3;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .steps-list {
+            list-style: none;
+            counter-reset: step-counter;
+            margin-bottom: 30px;
+        }
+
+        .steps-list li {
+            position: relative;
+            padding-left: 50px;
+            margin-bottom: 20px;
+            counter-increment: step-counter;
+        }
+
+        .steps-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 32px;
+            height: 32px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 32px;
+            font-weight: bold;
+        }
+
+        .warning-box {
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            color: var(--warning-text);
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .warning-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .disclaimer {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+
+        /* Адаптивность для мобильных */
+        @media (max-width: 768px) {
+            .search-panel {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🔧 Мастер Ремонта</h1>
+        <p>Выберите устройство и симптом, чтобы получить пошаговую инструкцию по диагностике и ремонту</p>
+    </header>
+
+    <div class="search-panel">
+        <div class="form-group">
+            <label for="category">Тип устройства</label>
+            <select id="category">
+                <option value="">-- Выберите категорию --</option>
+                <!-- Заполняется через JS -->
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="symptom">Неисправность (Симптом)</label>
+            <select id="symptom" disabled>
+                <option value="">-- Сначала выберите устройство --</option>
+            </select>
+        </div>
+
+        <button class="btn" onclick="findSolution()">Найти решение</button>
+    </div>
+
+    <div id="result" class="result-card">
+        <div class="result-header">
+            <h2 id="res-title">Название проблемы</h2>
+        </div>
+        
+        <div class="diagnosis">
+            <strong>🔍 Вероятная причина:</strong> <span id="res-diagnosis">Описание</span>
+        </div>
+
+        <div class="section-title">🛠️ Необходимые инструменты:</div>
+        <div class="tools-list" id="res-tools">
+            <!-- Теги инструментов -->
+        </div>
+
+        <div class="section-title">📋 Пошаговая инструкция:</div>
+        <ol class="steps-list" id="res-steps">
+            <!-- Шаги -->
+        </ol>
+
+        <div class="warning-box" id="res-warning" style="display: none;">
+            <span class="warning-icon">⚠️</span>
+            <div>
+                <strong>Внимание!</strong>
+                <p id="res-warning-text"></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="disclaimer">
+        <p>⚠️ Отказ от ответственности: Данные рекомендации носят ознакомительный характер. 
+        Ремонт сложной электроники требует квалификации. Если вы не уверены в своих силах, обратитесь в сервисный центр. 
+        Автор не несет ответственности за повреждение оборудования или травмы.</p>
+    </div>
+</div>
+
+<script>
+    // База данных рекомендаций (можно легко расширять)
+    const repairDatabase = {
+        smartphone: {
+            name: "📱 Смартфоны и планшеты",
+            issues: {
+                no_power: {
+                    title: "Устройство не включается и не реагирует на зарядку",
+                    diagnosis: "Чаще всего проблема в глубоком разряде аккумулятора, неисправном контроллере питания (IC Charging), загрязненном или сломанном разъеме зарядки, либо коротком замыкании на плате.",
+                    tools: ["Крестовая отвертка (PH000)", "Медиатор/пластиковая лопатка", "Мультиметр", "Изопропиловый спирт", "Новый аккумулятор (при необходимости)"],
+                    steps: [
+                        "Отключите устройство от сети. Попробуйте использовать заведомо исправный кабель и блок питания, оставьте на зарядке минимум на 30 минут.",
+                        "Осмотрите разъем зарядки с помощью фонарика. Если там есть спрессованная пыль или ворс, аккуратно удалите их деревянной зубочисткой (не металлом!).",
+                        "Если есть навыки разборки: снимите заднюю крышку, отключите шлейф аккумулятора и измерьте мультиметром напряжение на нем (должно быть > 3.7В).",
+                        "Если напряжение низкое, попробуйте 'толкнуть' аккумулятор через лабораторный блок питания или замените его.",
+                        "Если аккумулятор исправен, но телефон не включается, проблема в контроллере питания или цепи кнопки включения (требуется диагностика у мастера)."
+                    ],
+                    warning: "Никогда не прокалывайте и не сгибайте вздувшийся аккумулятор! Это может привести к возгоранию. Утилизируйте его в специальном контейнере."
+                },
+                fast_drain: {
+                    title: "Аккумулятор разряжается слишком быстро",
+                    diagnosis: "Деградация химического состава аккумулятора (износ), фоновая активность приложений или утечка тока на плате.",
+                    tools: ["Программа для диагностики (например, AccuBattery)", "Отвертка", "Новый аккумулятор"],
+                    steps: [
+                        "Проверьте статистику расхода заряда в настройках. Закройте фоновые приложения и отключите GPS/Bluetooth.",
+                        "Узнайте циклы перезарядки и емкость аккумулятора (через инженерное меню или приложение). Если емкость упала ниже 80% от номинала, батарея требует замены.",
+                        "Выполните калибровку: разрядите устройство до 0% (пока оно само не выключится), затем зарядите до 100% в выключенном состоянии, не прерывая процесс.",
+                        "Если калибровка не помогла, произведите физическую замену аккумулятора."
+                    ],
+                    warning: "При разборке современных смартфонов используйте фен или нагревательный коврик для размягчения клея. Не применяйте чрезмерную силу, чтобы не разбить стекло."
+                }
+            }
+        },
+        laptop: {
+            name: "💻 Ноутбуки",
+            issues: {
+                overheating: {
+                    title: "Сильный перегрев и шум вентилятора",
+                    diagnosis: "Высыхание термопасты, засорение системы охлаждения пылью, износ подшипника вентилятора или высохшие термопрокладки на цепях питания.",
+                    tools: ["Набор отверток", "Термопаста (например, MX-4)", "Изопропиловый спирт", "Безворсовые салфетки", "Сжатый воздух"],
+                    steps: [
+                        "Полностью выключите ноутбук и отсоедините блок питания.",
+                        "Снимите нижнюю крышку. Отключите шлейф аккумулятора (обязательно!).",
+                        "С помощью сжатого воздуха аккуратно продуйте радиатор и лопасти вентилятора, придерживая вентилятор пальцем, чтобы он не раскрутился от потока воздуха (это может повредить его).",
+                        "Открутите радиатор, аккуратно удалите старую термопасту с процессора и видеокарты салфеткой со спиртом.",
+                        "Нанесите новую термопасту тонким равномерным слоем (размером с горошину) по центру кристалла. Соберите ноутбук в обратном порядке."
+                    ],
+                    warning: "Не отключайте шлейф вентилятора под нагрузкой. Не используйте токопроводящие термопасты (например, с серебром) без крайней необходимости, они могут вызвать КЗ при растекании."
+                },
+                no_display: {
+                    title: "Ноутбук включается (шумит), но экран черный",
+                    diagnosis: "Неисправность матрицы экрана, шлейфа матрицы, оперативной памяти или видеочипа.",
+                    tools: ["Внешний монитор", "Отвертка", "Ластик"],
+                    steps: [
+                        "Подключите внешний монитор через HDMI или VGA. Если изображение есть, проблема в матрице ноутбука или ее шлейфе.",
+                        "Попробуйте аккуратно открыть и закрыть крышку ноутбука под разными углами. Если изображение на внешнем мониторе мигает или появляется на основном экране, проблема в перетертом шлейфе матрицы.",
+                        "Если изображения нет нигде: отключите питание, извлеките модули оперативной памяти, аккуратно протрите их контакты обычным ластиком и вставьте обратно (можно попробовать поменять слоты).",
+                        "Сбросьте настройки BIOS, отключив батарейку CMOS на материнской плате на 5-10 минут."
+                    ],
+                    warning: "Шлейф матрицы очень хрупкий. При его замене действуйте без рывков. Работайте только при полностью отключенном аккумуляторе."
+                }
+            }
+        },
+        appliance: {
+            name: "🧺 Бытовая техника (Стиральные машины)",
+            issues: {
+                no_drain: {
+                    title: "Не сливает воду",
+                    diagnosis: "Засор сливного фильтра, засор или перегиб сливного шланга, неисправность сливного насоса (помпы) или модуля управления.",
+                    tools: ["Тряпки/полотенца", "Низкий таз", "Плоскогубцы", "Новый сливной насос (при необходимости)"],
+                    steps: [
+                        "Отключите машину от электросети и перекройте подачу воды.",
+                        "Откройте лючок сливного фильтра (обычно внизу справа). Подставьте низкий таз и положите тряпки.",
+                        "Открутите фильтр против часовой стрелки. Слейте остатки воды. Очистите фильтр от мусора, монет, волос.",
+                        "Загляните внутрь отверстия фильтра: аккуратно покрутите крыльчатку насоса пальцем. Она должна вращаться легко и пружинить. Если заедает или гудит без вращения – насос под замену.",
+                        "Проверьте сливной шланг на перегибы и засоры. Если насос гудит, но не качает, а фильтр чист – снимите заднюю или нижнюю панель и замените помпу."
+                    ],
+                    warning: "Вода может быть горячей! Будьте осторожны при сливе. Обязательно отключайте устройство от розетки перед любым вмешательством."
+                }
+            }
+        }
+    };
+
+    // Элементы DOM
+    const categorySelect = document.getElementById('category');
+    const symptomSelect = document.getElementById('symptom');
+    const resultCard = document.getElementById('result');
+
+    // Инициализация категорий
+    function init() {
+        for (const [key, value] of Object.entries(repairDatabase)) {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = value.name;
+            categorySelect.appendChild(option);
+        }
+    }
+
+    // Обработчик изменения категории
+    categorySelect.addEventListener('change', function() {
+        const selectedCategory = this.value;
+        
+        // Очистка и сброс поля симптомов
+        symptomSelect.innerHTML = '<option value="">-- Выберите неисправность --</option>';
+        resultCard.style.display = 'none';
+        
+        if (selectedCategory && repairDatabase[selectedCategory]) {
+            symptomSelect.disabled = false;
+            const issues = repairDatabase[selectedCategory].issues;
+            
+            for (const [key, value] of Object.entries(issues)) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = value.title;
+                symptomSelect.appendChild(option);
+            }
+        } else {
+            symptomSelect.disabled = true;
+            symptomSelect.innerHTML = '<option value="">-- Сначала выберите устройство --</option>';
+        }
+    });
+
+    // Функция поиска и отображения решения
+    function findSolution() {
+        const catKey = categorySelect.value;
+        const symKey = symptomSelect.value;
+
+        if (!catKey || !symKey) {
+            alert('Пожалуйста, выберите и устройство, и тип неисправности.');
+            return;
+        }
+
+        const data = repairDatabase[catKey].issues[symKey];
+
+        // Заполнение данных
+        document.getElementById('res-title').textContent = data.title;
+        document.getElementById('res-diagnosis').textContent = data.diagnosis;
+        
+        // Инструменты
+        const toolsContainer = document.getElementById('res-tools');
+        toolsContainer.innerHTML = '';
+        data.tools.forEach(tool => {
+            const tag = document.createElement('span');
+            tag.className = 'tool-tag';
+            tag.textContent = tool;
+            toolsContainer.appendChild(tag);
+        });
+
+        // Шаги
+        const stepsContainer = document.getElementById('res-steps');
+        stepsContainer.innerHTML = '';
+        data.steps.forEach(step => {
+            const li = document.createElement('li');
+            li.textContent = step;
+            stepsContainer.appendChild(li);
+        });
+
+        // Предупреждение
+        const warningBox = document.getElementById('res-warning');
+        if (data.warning) {
+            document.getElementById('res-warning-text').textContent = data.warning;
+            warningBox.style.display = 'flex';
+        } else {
+            warningBox.style.display = 'none';
+        }
+
+        // Показать карточку с анимацией
+        resultCard.style.display = 'block';
+        resultCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Запуск
+    init();
+</script>
+
+</body>
+</html>
